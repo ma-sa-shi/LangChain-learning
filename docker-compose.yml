@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: dockerfile
+    tty: true
+    stdin_open: true
+    command: /bin/bash
+    volumes:
+      - .:/langchain_learning
+    env_file:
+      - .env
+    environment:
+      - OPENAI_API_KEY
+      - OPENAI_MODEL_NAME
