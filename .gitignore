@@ -2,4 +2,5 @@
 docs/*
 !docs/.gitkeep
 chroma_db/*
-!chroma_db/.gitkeep
+!chroma_db/.gitkeepsrc/lcel.py
+src/lcel_parallel.py

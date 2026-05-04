@@ -1,41 +1,51 @@
-# LangChain Learning Project
+# LangChain Advanced RAG Learning Project
 
-LangChain を活用した LLM アプリケーション開発の学習用リポジトリです。
-LCEL (LangChain Expression Language) の基本から、並列処理、RAG (Retrieval-Augmented Generation) のデータインジェクションの実装例を含んでいます。
+このプロジェクトは、LangChain Expression Language (LCEL) を活用し、検索精度を大幅に向上させた高度な RAG (Retrieval-Augmented Generation) パイプラインを実装した学習用リポジトリです。
 
 ## プロジェクト構成
 
 ```text
 /langchain_learning
 ├── src/
-│   ├── lced.py           # LCEL の基本実装（Prompt | Model | Parser）
-│   ├── lced_parallel.py  # RunnableParallel を用いた並列処理と構造化出力
-│   └── rag_flow.py       # ドキュメントのベクトル化と ChromaDB への保存 (RAG インジェクション)
-└── .env                  # 環境設定ファイル（要作成）
+│   ├── main.py          # アプリケーションのエントリーポイント
+│   ├── chains.py        # RAG チェーンの定義（Multi-Query, RRF, Rerank を含む）
+│   ├── vectorstore.py   # VectorStore (Chroma) および Retriever の設定
+│   ├── utils.py         # Reciprocal Rank Fusion (RRF) などのユーティリティ関数
+│   ├── prompts.py       # 各ステップで使用するプロンプトテンプレート
+│   └── schema.py        # Pydantic モデルによる構造化データの定義
+└── .env                 # 環境設定ファイル
 ```
 
-## 各ファイルの詳細
+### 1. main.py
+アプリケーションのエントリーポイントです。環境変数の読み込み、Retrieverの初期化、およびRAGチェーンの呼び出しを行います。
 
-### 1. [lced.py](src/lced.py) - LCEL の基本
-LCEL の最も標準的なパイプライン構成を学びます。
-- **概要**: ユーザーが入力したトピックについて、LLM が簡潔に 1 行で説明します。
-- **構成**: `PromptTemplate` | `ChatOpenAI` | `StrOutputParser` をパイプ記法で連結しています。
+### 2. chains.py
+LCELを用いた高度なRAGパイプラインを定義しています。
+- **Multi-Query**: 1つの質問から3〜5つの異なる検索クエリを生成し、検索の網羅性を高めます。
+- **Reciprocal Rank Fusion (RRF)**: 複数クエリの検索結果を統合し、ランキングを再計算します。
+- **Cohere Rerank**: 統合されたドキュメントを再ランク付けし、最も関連性の高い上位4件に絞り込みます。
 
-### 2. lced_parallel.py - 並列実行と構造化出力
-`RunnableParallel` を活用した、より高度なチェーン構成を学びます。
-- **概要**: 1 つの入力文に対して、「感情分析」と「要約」を同時に実行します。
-- **特徴**: `Pydantic` モデルを用いた `with_structured_output` を採用しており、LLM からのレスポンスを型定義されたオブジェクトとして取得します。
+### 3. vectorstore.py
+ベクトルデータベース（Chroma）の操作を担当します。
+- `get_retriever`: 保存済みのベクトルストアから検索用インスタンスを取得します。
+- `add_documents_to_db`: テキストデータをベクトル化してDBに永続化します。
 
-### 3. rag_flow.py - RAG データインジェクション
-RAG システムの基盤となる、ドキュメントのベクトル化と永続化のフローです。
-- **概要**: テキストファイルを読み込み、チャンク分割してベクトルデータベース（ChromaDB）に保存します。
-- **技術スタック**: `TextLoader`, `RecursiveCharacterTextSplitter`, `OpenAIEmbeddings`, `Chroma`
-- **コマンド引数**: `python src/rag_flow.py <ファイルパス> --chunk_size 500` のように実行可能です。
+### 4. utils.py
+Reciprocal Rank Fusion (RRF) アルゴリズムを実装しています。複数の検索結果リストを、重み付けを用いて1つのリストに統合します。
+
+### 5. prompts.py
+LLMに与えるプロンプトテンプレートを管理しています。
+- クエリ生成用（`query_gen_prompt`）
+- 最終回答用（`answer_prompt`）
+
+### 6. schema.py
+Pydanticを用いたデータ構造の定義です。LLMから構造化されたクエリリスト（`MultiQuery`）を取得するために使用します。
 
 ## セットアップ
 
 ### 1. 依存関係のインストール
-このプロジェクトは [Poetry](https://python-poetry.org/) を使用してパッケージ管理を行っています。
+
+このプロジェクトは Poetry を使用してパッケージ管理を行っています。
 
 ```bash
 poetry install
@@ -48,19 +58,18 @@ poetry install
 OPENAI_API_KEY=your_api_key_here
 OPENAI_MODEL_NAME=gpt-5-nano
 OPENAI_EMBEDDING_MODEL_NAME=text-embedding-3-small
+COHERE_API_KEY=your_cohere_api_key_here
+CHROMA_PERSIST_DIRECTORY=./chroma_db
 ```
 
 ## 使い方
 
-各スクリプトは個別に実行して動作を確認できます。
+メインアプリケーションを実行して、RAGによる質問回答を開始します。
 
 ```bash
-# 基本的なチェーンの実行
-poetry run python src/lced.py
-
-# 並列処理と構造化出力の実行
-poetry run python src/lced_parallel.py
-
-# ドキュメントをベクトル化して ChromaDB に保存
-poetry run python src/rag_flow.py data/sample.txt
+# RAGアプリケーションの実行
+poetry run python src/main.py
 ```
+
+### ドキュメントの追加
+新しいテキストデータをベクトルデータベースに登録する場合は、vectorstore.py の add_documents_to_db 関数を利用したスクリプトを作成・実行してください。
