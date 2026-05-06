@@ -1,10 +1,13 @@
 from dotenv import load_dotenv
-from chains import create_rag_chain
-from vectorstore import get_retriever
+from share.chains import create_rag_chain
+from share.vectorstore import get_retriever
+from graph.workflow import compiled
 
 load_dotenv()
 
 rag_chain = create_rag_chain(get_retriever())
 
-question = ("質問を入力してください: ")
-rag_chain.invoke({"question": question})
+question = input("質問を入力してください: ")
+initial_state = {"question": question}
+result = compiled.invoke(initial_state)
+print(result.get("answer"))
