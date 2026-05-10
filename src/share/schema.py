@@ -12,7 +12,7 @@ from langchain_core.documents import Document
 class MultiQuery(BaseModel):
     """LLMが生成する複数の検索クエリを表すクラス。
     Attributes:
-        queries (list[str]): LLMが生成する検索クエリのリスト。3~5のクエリが必要。
+        queries (list[str]): LLMが生成する検索クエリのリスト。3~5個のクエリが必要。
     """
     queries: list[str] = Field(
         ...,
@@ -37,17 +37,19 @@ class GraphState(TypedDict):
     """ワークフローの状態を表すクラス。
     Attributes:
     question (str): ユーザーからの質問
-    queries (list[str]): LLMが生成する検索クエリのリスト
-    documents (list[Document]): ベクトルストアから検索されたドキュメントのリスト
+    queries (list[list[str]]): LLMが生成する検索クエリのリスト
+    documents (list[list[Document]]): ベクトルストアから検索されたドキュメントのリスト
     answer (str): LLMが生成する回答
-    evaluation (str): LLMが生成する回答の評価
-    feedback (str): LLMが生成する回答の評価理由
+    evaluation (list[str]): LLMが生成する回答の評価
+    feedback (list[str]): LLMが生成する回答の評価理由
     loop_step (int): ワークフローのループ回数。初回は0で、再試行するたびに1ずつ増加する。
+    failure_analysis (str): 回答生成に失敗した場合の分析結果
     """
     question: str
-    queries: list[str]
-    documents: Annotated[list[Document], operator.add]
+    queries: Annotated[list[list[str]], operator.add]
+    documents: Annotated[list[list[Document]], operator.add]
     answer: str
-    evaluation: str
-    feedback: str
+    evaluation: Annotated[list[str], operator.add]
+    feedback: Annotated[list[str], operator.add]
     loop_step: int
+    failure_analysis: str
