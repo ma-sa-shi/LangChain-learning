@@ -3,6 +3,11 @@ import argparse
 from pathlib import Path
 
 def download_raw_rst(library_name, output_dir):
+    """指定されたライブラリのRSTファイルをGitHubからダウンロードして保存する関数
+    Args:
+        library_name (str): ダウンロードするライブラリの名前
+        output_dir (str): RSTファイルを保存するディレクトリ
+    """
     dest_dir = Path(output_dir)
     dest_dir.mkdir(parents=True, exist_ok=True)
     file_path = dest_dir / f"{library_name}.rst"
@@ -11,14 +16,15 @@ def download_raw_rst(library_name, output_dir):
 
     try:
         response = requests.get(url)
-        if response.status_code == 200:
-            with open(file_path, "w", encoding="utf-8") as f:
-                f.write(response.text)
-            print(f"Downloaded {library_name}.rst")
-    except requests.exceptions.HTTPError as e:
-        print(f"Failed to download {library_name}.rst: {e}")
-    except Exception as e:
-        print(f"An error occurred while downloading {library_name}.rst: {e}")
+        # 4XXや5XXのステータスコードが返された場合に例外を発生させる
+        response.raise_for_status()
+
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(response.text)
+        print(f"{library_name}.rstを保存しました")
+
+    except requests.exceptions.RequestException as e:
+        print(f"エラーが発生しました: {e}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

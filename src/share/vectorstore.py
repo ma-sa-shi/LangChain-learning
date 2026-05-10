@@ -42,6 +42,7 @@ def get_retriever(k: int = 4):
     return  vectorstore.as_retriever(search_kwargs={"k": k})
 
 if __name__ == "__main__":
+    # sys.argv[0]はスクリプト名、sys.argv[1:]はコマンドライン引数のリスト
     if len(sys.argv) > 1:
         target_files = sys.argv[1:]
         add_files_to_db(target_files)
