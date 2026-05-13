@@ -1,4 +1,3 @@
-
 from pathlib import Path
 from langchain_core.documents import Document
 from langchain_community.document_loaders import TextLoader, PyPDFLoader
@@ -28,6 +27,7 @@ def load_file(file_paths: list[str | Path]) -> list[Document]:
         all_docs.extend(loader.load())
     return all_docs
 
+
 def split_documents(documents: list[Document]) -> list[Document]:
     """ドキュメントをチャンクに分割する関数
     Args:
@@ -38,22 +38,21 @@ def split_documents(documents: list[Document]) -> list[Document]:
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
         chunk_overlap=100,
-        separators = [
-            "\n\n.. class::",      # クラス定義
-            "\n\n.. method::",     # メソッド定義
+        separators=[
+            "\n\n.. class::",  # クラス定義
+            "\n\n.. method::",  # メソッド定義
             "\n\n.. attribute::",  # 属性定義
-            "\n\n.. function::",   # モジュールレベルの関数
-            "\n\n",                # 段落
-            "\n",                  # 行
-            " "                    # 単語
-        ]
+            "\n\n.. function::",  # モジュールレベルの関数
+            "\n\n",  # 段落
+            "\n",  # 行
+            " ",  # 単語
+        ],
     )
     return text_splitter.split_documents(documents)
 
+
 def reciprocal_rank_fusion(
-        retriever_outputs: list[list[Document]],
-        k: int= 60,
-        top_n: int = 20
+    retriever_outputs: list[list[Document]], k: int = 60, top_n: int = 20
 ) -> list[Document]:
     """再帰的ランクフュージョンを実行する関数
     Args:
@@ -76,9 +75,9 @@ def reciprocal_rank_fusion(
     sorted_items = sorted(
         doc_score_map.items(),
         key=lambda x: x[1][0],
-        reverse=True # 降順
+        reverse=True,  # 降順
     )
 
-    reranked_docs = [doc for _, (score, doc) in sorted_items[:top_n]]
+    reranked_docs = [doc for _, (_, doc) in sorted_items[:top_n]]
 
     return reranked_docs

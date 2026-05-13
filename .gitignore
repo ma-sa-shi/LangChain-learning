@@ -5,3 +5,4 @@ chroma_db/*
 !chroma_db/.gitkeepsrc/
 diff.txt
 __pycache__/
+.ruff_cache
