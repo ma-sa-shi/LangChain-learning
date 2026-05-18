@@ -2,6 +2,7 @@ import requests
 import argparse
 from pathlib import Path
 
+
 def download_raw_rst(library_name, output_dir):
     """指定されたライブラリのRSTファイルをGitHubからダウンロードして保存する関数
     Args:
@@ -25,6 +26,7 @@ def download_raw_rst(library_name, output_dir):
 
     except requests.exceptions.RequestException as e:
         print(f"エラーが発生しました: {e}")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
