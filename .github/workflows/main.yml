@@ -1,0 +1,39 @@
+name: Continuous Integration
+
+on:
+ pull_request:
+    branches: ['main']
+    types: [opened, synchronize, reopened]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install Poetry
+        run: |
+          pipx install poetry
+          poetry config virtualenvs.in-project false
+
+      - name: Load cached venv
+        id: cached-venv
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/pypoetry
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install Dependencies
+        if: steps.cached-venv.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+
+      - name: Run Ruff
+        run: |
+          poetry run ruff check .
+          poetry run ruff format --check .
